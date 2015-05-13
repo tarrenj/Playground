@@ -19,51 +19,47 @@ output = []
 states = []
 old_states = []
 
-# Open if it isn't already
-if serial_con.isOpen():
-
-    try:
-        # Flush input buffer, discarding all its contents
-        serial_con.flushInput()
-        # Flush output buffer, aborting current output
-        serial_con.flushOutput()
+while True:
+    if serial_con.isOpen():
+        try:
+            # Flush input buffer, discarding all its contents
+            serial_con.flushInput()
+            # Flush output buffer, aborting current output
+            serial_con.flushOutput()
+        
+            # Write a command
+            serial_con.write('state\r\n')
     
-        # Write a command
-        serial_con.write('state\r\n')
-
-        # Turn into list
-        for port in range(0,16):
-            output.append(serial_con.readline())
+            # Turn into list
+            for port in range(0,15):
+                output.append(serial_con.readline())
     
-        for element in output:
-            print element
-
-        states = []
-        # Find the third element of the each state
-        for element in output:
-            tmp = element.split()
-            states.append(tmp[2])
-
-        # If any states are 'R', device rebooted, send 'cff'
-        for state in states:
-            if state = 'R':
-                print 'device rebooted, clearing output...'
-                serial_con.write('state\r\n')
-
-        for port in range(len(states)):
-            if old_states[port] is not states[port]:
-                # There's a difference!
-                print output[port]
-
-        # Update old states
-        old_states = states
-
-    # Actual code is done, clean things up and end program
-    except Exception, e:
-        print 'error communicating...: ' + str(e)
-
-    # Close the serial port whether the except was triggerd or not
-    finally:
-        serial_con.close()
-else:
-    print 'cannot open serial port'
+            # Find the third element of the each state
+            for element in output:
+                tmp = element.split()
+                states.append(tmp[2])
+    
+            # If any states are 'R', device rebooted, send 'cls'
+            for state in states:
+                if state is 'R':
+                    print 'device rebooted, clearing output...'
+                    serial_con.write('cls\r\n')
+                    break
+    
+            for port in range(len(states)):
+                if states[port] is not 'R' and states[port] is not old_states[port]:
+                    # There's a difference!
+                    print output[port]
+    
+            # Update old states
+            old_states = states
+    
+        # Actual code is done, clean things up and end program
+        except Exception, e:
+            print 'error communicating...: ' + str(e)
+    
+        # Close the serial port whether the except was triggered or not
+        finally:
+            serial_con.close()
+    else:
+        print 'cannot open serial port'
